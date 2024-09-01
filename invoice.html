@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 2px solid #ff5733; /* Updated border color */
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .header, .footer {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+            color: #007bff;
+        }
+        .header p {
+            margin: 5px 0;
+            font-size: 1em;
+            color: #555;
+        }
+        .invoice-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .invoice-details .box {
+            width: 48%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .invoice-details .box h2 {
+            margin-top: 0;
+            font-size: 1.2em;
+            color: #007bff;
+        }
+        .item-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .item-table th, .item-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .item-table th {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .item-table td {
+            background-color: #f9f9f9;
+        }
+        .totals {
+            text-align: right;
+            margin-top: 20px;
+            border-top: 2px solid #007bff;
+            padding-top: 10px;
+        }
+        .totals p {
+            margin: 5px 0;
+            font-size: 1.1em;
+        }
+        .totals p strong {
+            font-size: 1.2em;
+        }
+        .button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>My Supermarket</h1>
+            <p>123 Business St, City, Country</p>
+        </div>
+
+        <div class="invoice-details">
+            <div class="box">
+                <h2>Company Info</h2>
+                <p>Company Name: My Supermarket</p>
+                <p>GST: 1234567890</p>
+            </div>
+            <div class="box">
+                <h2>Customer Info</h2>
+                <p>Customer Name: <span id="customer-name"></span></p>
+                <p>Customer GST: <span id="customer-gst"></span></p>
+                <p>Mobile No: <span id="mobile-no"></span></p>
+                <p>Payment Method: <span id="payment-method"></span></p>
+            </div>
+        </div>
+
+        <table class="item-table">
+            <thead>
+                <tr>
+                    <th>Product Code</th>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Total Price</th>
+                </tr>
+            </thead>
+            <tbody id="invoice-items">
+                <!-- Invoice items will be populated here by JavaScript -->
+            </tbody>
+        </table>
+
+        <div class="totals">
+            <p>Subtotal: <span id="subtotal"></span></p>
+            <p>CGST (9%): <span id="cgst"></span></p>
+            <p>SGST (9%): <span id="sgst"></span></p>
+            <p><strong>Total Amount Due: <span id="total"></span></strong></p>
+        </div>
+
+        <div class="footer">
+            <button class="button" onclick="window.print()">Print Invoice</button>
+            <button class="button" onclick="window.location.href='index.html'">Back to Input</button>
+        </div>
+    </div>
+
+    <script>
+        function formatCurrency(amount) {
+            return `$${amount.toFixed(2)}`;
+        }
+
+        function generateInvoice() {
+            const invoiceData = JSON.parse(localStorage.getItem('invoice'));
+
+            if (!invoiceData) {
+                document.querySelector('.container').innerHTML = '<p>No invoice data found.</p>';
+                return;
+            }
+
+            // Populate customer details
+            document.getElementById('customer-name').textContent = invoiceData.customerName;
+            document.getElementById('customer-gst').textContent = invoiceData.customerGST;
+            document.getElementById('mobile-no').textContent = invoiceData.mobileNo;
+            document.getElementById('payment-method').textContent = invoiceData.paymentMethod;
+
+            // Populate invoice items
+            const itemsContainer = document.getElementById('invoice-items');
+            let subtotal = 0;
+            invoiceData.products.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.code}</td>
+                    <td>${product.name}</td>
+                    <td>${product.quantity}</td>
+                    <td>${formatCurrency(product.price)}</td>
+                    <td>${formatCurrency(product.total)}</td>
+                `;
+                itemsContainer.appendChild(row);
+                subtotal += product.total;
+            });
+
+            // Calculate taxes and total
+            const cgst = subtotal * 0.09;
+            const sgst = subtotal * 0.09;
+            const total = subtotal + cgst + sgst;
+
+            // Populate totals
+            document.getElementById('subtotal').textContent = formatCurrency(subtotal);
+            document.getElementById('cgst').textContent = formatCurrency(cgst);
+            document.getElementById('sgst').textContent = formatCurrency(sgst);
+            document.getElementById('total').textContent = formatCurrency(total);
+        }
+
+        generateInvoice();
+    </script>
+</body>
+</html>

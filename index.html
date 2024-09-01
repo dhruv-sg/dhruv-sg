@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Input</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .product-list {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Supermarket Invoice Input</h1>
+        <form id="invoice-form">
+            <div class="input-group">
+                <label for="customer-name">Customer Name:</label>
+                <input type="text" id="customer-name" required>
+            </div>
+            <div class="input-group">
+                <label for="customer-gst">Customer GST:</label>
+                <input type="text" id="customer-gst" required>
+            </div>
+            <div class="input-group">
+                <label for="mobile-no">Customer Mobile No:</label>
+                <input type="text" id="mobile-no" required>
+            </div>
+            <div class="input-group">
+                <label for="product-code">Product Code:</label>
+                <input type="text" id="product-code" required>
+            </div>
+            <div class="input-group">
+                <label for="quantity">Quantity:</label>
+                <input type="number" id="quantity" min="1" required>
+            </div>
+            <div class="input-group">
+                <label>Payment Method:</label>
+                <label><input type="radio" name="payment-method" value="Online" required> Online</label>
+                <label><input type="radio" name="payment-method" value="Card" required> Card</label>
+                <label><input type="radio" name="payment-method" value="Cash" required> Cash</label>
+            </div>
+            <button type="button" class="button" onclick="addProduct()">Add Product</button>
+            <button type="button" class="button" onclick="generateInvoice()">Generate Invoice</button>
+        </form>
+
+        <div class="product-list">
+            <h2>Available Products</h2>
+            <ul id="product-list">
+                <!-- Product list will be populated here by JavaScript -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // List of products with prices
+        const productCatalog = {
+            'P001': { name: 'Milk', price: 1.00 },
+            'P002': { name: 'Bread', price: 2.50 },
+            'P003': { name: 'Eggs', price: 3.00 },
+            'P004': { name: 'Butter', price: 4.00 } // New product added
+            // Add more products as needed
+        };
+    
+        function populateProductList() {
+            const productList = document.getElementById('product-list');
+            productList.innerHTML = '';
+            for (const [code, details] of Object.entries(productCatalog)) {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${code} - ${details.name}: $${details.price.toFixed(2)}`;
+                productList.appendChild(listItem);
+            }
+        }
+    
+        populateProductList();
+    
+        function addProduct() {
+            const productCode = document.getElementById('product-code').value;
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const product = productCatalog[productCode];
+    
+            if (product) {
+                const invoiceData = JSON.parse(localStorage.getItem('invoice')) || { products: [], customerName: '', customerGST: '', mobileNo: '', paymentMethod: '' };
+                invoiceData.products.push({
+                    code: productCode,
+                    name: product.name,
+                    price: product.price,
+                    quantity: quantity,
+                    total: product.price * quantity
+                });
+                invoiceData.customerName = document.getElementById('customer-name').value;
+                invoiceData.customerGST = document.getElementById('customer-gst').value;
+                invoiceData.mobileNo = document.getElementById('mobile-no').value;
+                invoiceData.paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
+    
+                localStorage.setItem('invoice', JSON.stringify(invoiceData));
+                alert('Product added!');
+            } else {
+                alert('Invalid product code!');
+            }
+    
+            document.getElementById('product-code').value = '';
+            document.getElementById('quantity').value = '';
+        }
+    
+        function generateInvoice() {
+            if (!document.getElementById('customer-name').value || !document.querySelector('input[name="payment-method"]:checked')) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+    
+            window.location.href = 'invoice.html';
+        }
+    </script>
+    
+</body>
+</html>
